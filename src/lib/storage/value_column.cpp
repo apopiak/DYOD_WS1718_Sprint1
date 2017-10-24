@@ -17,17 +17,17 @@ template <typename T>
 const AllTypeVariant ValueColumn<T>::operator[](const size_t i) const {
   PerformanceWarning("operator[] used");
 
-  return _data[i];
+  return _values[i];
 }
 
 template <typename T>
 void ValueColumn<T>::append(const AllTypeVariant& val) {
-  _data.push_back(type_cast<T>(val));
+  _values.push_back(type_cast<T>(val));
 }
 
 template <typename T>
 size_t ValueColumn<T>::size() const {
-  return _data.size();
+  return _values.size();
 }
 
 EXPLICITLY_INSTANTIATE_COLUMN_TYPES(ValueColumn);

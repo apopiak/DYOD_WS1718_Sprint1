@@ -23,7 +23,7 @@ class ValueColumn : public BaseColumn {
   size_t size() const override;
 
  protected:
-  std::vector<T> _data;
+  std::vector<T> _values;
 };
 
 }  // namespace opossum
