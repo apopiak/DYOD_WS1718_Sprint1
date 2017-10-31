@@ -21,7 +21,7 @@ void StorageManager::drop_table(const std::string& name) {
   if (has_table(name)) {
     _tables.erase(name);
   } else {
-    throw std::runtime_error(std::string("not table named: '") + name + "'");
+    throw std::invalid_argument(std::string("no table named: '") + name + "'");
   }
 }
 
