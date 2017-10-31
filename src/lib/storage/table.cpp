@@ -29,10 +29,10 @@ void Table::add_column_definition(const std::string& name, const std::string& ty
 }
 
 void Table::add_column(const std::string& name, const std::string& type) {
-  add_column_definition(name, type);
   for (auto& chunk : _chunks) {
     chunk.add_column(make_shared_by_column_type<BaseColumn, ValueColumn>(type));
   }
+  add_column_definition(name, type);
 }
 
 void Table::append(std::vector<AllTypeVariant> values) {
