@@ -38,11 +38,9 @@ std::vector<std::string> StorageManager::table_names() const {
 }
 
 void StorageManager::print(std::ostream& out) const {
-  for (const auto &pair : _tables) {
-    const auto &table = *(pair.second);
-    out << "'" << pair.first << "': "
-        << table.col_count() << " columns, "
-        << table.row_count() << " rows, "
+  for (const auto& pair : _tables) {
+    const auto& table = *(pair.second);
+    out << "'" << pair.first << "': " << table.col_count() << " columns, " << table.row_count() << " rows, "
         << table.chunk_count() << " chunks" << std::endl;
   }
 }
