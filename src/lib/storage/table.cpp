@@ -75,22 +75,23 @@ const std::vector<std::string>& Table::column_names() const { return _column_nam
 
 const std::string& Table::column_name(ColumnID column_id) const {
   DebugAssert(column_id < _column_names.size(),
-  "Table::column_name: column_id out of range: " + std::to_string(column_id));
-  return _column_names[column_id.t]; }
+              "Table::column_name: column_id out of range: " + std::to_string(column_id));
+  return _column_names[column_id.t];
+}
 
-const std::string& Table::column_type(ColumnID column_id) const { 
+const std::string& Table::column_type(ColumnID column_id) const {
   DebugAssert(column_id < _column_types.size(),
-  "Table::column_type: column_id out of range: " + std::to_string(column_id));
-  return _column_types[column_id.t]; }
+              "Table::column_type: column_id out of range: " + std::to_string(column_id));
+  return _column_types[column_id.t];
+}
 
-Chunk& Table::get_chunk(ChunkID chunk_id) { 
-  DebugAssert(chunk_id < _chunks.size(),
-  "Table::get_chunk: chunk_id out of range: " + std::to_string(chunk_id));
-  return _chunks[chunk_id.t]; }
+Chunk& Table::get_chunk(ChunkID chunk_id) {
+  DebugAssert(chunk_id < _chunks.size(), "Table::get_chunk: chunk_id out of range: " + std::to_string(chunk_id));
+  return _chunks[chunk_id.t];
+}
 
-const Chunk& Table::get_chunk(ChunkID chunk_id) const { 
-  DebugAssert(chunk_id < _chunks.size(),
-  "Table::get_chunk: chunk_id out of range: " + std::to_string(chunk_id));
+const Chunk& Table::get_chunk(ChunkID chunk_id) const {
+  DebugAssert(chunk_id < _chunks.size(), "Table::get_chunk: chunk_id out of range: " + std::to_string(chunk_id));
   return _chunks[chunk_id.t];
 }
 
