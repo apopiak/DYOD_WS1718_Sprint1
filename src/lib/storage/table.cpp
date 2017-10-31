@@ -55,8 +55,8 @@ void Table::create_new_chunk() {
 uint16_t Table::col_count() const { return _column_names.size(); }
 
 uint64_t Table::row_count() const {
-  return std::accumulate(_chunks.cbegin(), _chunks.cend(), 0,
-                         [](uint64_t acc, const auto& chunk) { return acc + chunk.size(); });
+  // all chunks except the last one got exactly _max_chunk_size many elements
+  return (chunk_count() - 1) * _max_chunk_size + _chunks.back().size();
 }
 
 ChunkID Table::chunk_count() const { return ChunkID{_chunks.size()}; }
@@ -64,7 +64,7 @@ ChunkID Table::chunk_count() const { return ChunkID{_chunks.size()}; }
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
   auto column_it = std::find(_column_names.cbegin(), _column_names.cend(), column_name);
   if (column_it == _column_names.cend()) {
-    throw std::runtime_error("column name not found in table");
+    throw std::invalid_argument("column with name '" + column_name + "' not found");
   }
   return ColumnID{std::distance(_column_names.cbegin(), column_it)};
 }
@@ -73,13 +73,26 @@ uint32_t Table::chunk_size() const { return _max_chunk_size; }
 
 const std::vector<std::string>& Table::column_names() const { return _column_names; }
 
-const std::string& Table::column_name(ColumnID column_id) const { return _column_names[column_id.t]; }
+const std::string& Table::column_name(ColumnID column_id) const {
+  DebugAssert(column_id < _column_names.size(),
+  "Table::column_name: column_id out of range: " + std::to_string(column_id));
+  return _column_names[column_id.t]; }
 
-const std::string& Table::column_type(ColumnID column_id) const { return _column_types[column_id.t]; }
+const std::string& Table::column_type(ColumnID column_id) const { 
+  DebugAssert(column_id < _column_types.size(),
+  "Table::column_type: column_id out of range: " + std::to_string(column_id));
+  return _column_types[column_id.t]; }
 
-Chunk& Table::get_chunk(ChunkID chunk_id) { return _chunks[chunk_id.t]; }
+Chunk& Table::get_chunk(ChunkID chunk_id) { 
+  DebugAssert(chunk_id < _chunks.size(),
+  "Table::get_chunk: chunk_id out of range: " + std::to_string(chunk_id));
+  return _chunks[chunk_id.t]; }
 
-const Chunk& Table::get_chunk(ChunkID chunk_id) const { return _chunks[chunk_id.t]; }
+const Chunk& Table::get_chunk(ChunkID chunk_id) const { 
+  DebugAssert(chunk_id < _chunks.size(),
+  "Table::get_chunk: chunk_id out of range: " + std::to_string(chunk_id));
+  return _chunks[chunk_id.t];
+}
 
 void Table::compress_chunk(ChunkID chunk_id) { throw std::runtime_error("TODO"); }
 
