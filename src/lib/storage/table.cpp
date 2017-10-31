@@ -58,11 +58,14 @@ void Table::create_new_chunk() {
 uint16_t Table::col_count() const { return _column_names.size(); }
 
 uint64_t Table::row_count() const {
-  // all chunks except the last one have exactly ` _max_chunk_size many` elements
+  // all chunks except the last one have exactly `_max_chunk_size` many elements
   return (chunk_count() - 1) * _max_chunk_size + _chunks.back().size();
 }
 
-ChunkID Table::chunk_count() const { return ChunkID{_chunks.size()}; }
+ChunkID Table::chunk_count() const {
+  // we know that the size will never be more than `numeric_limits<uint32_t>::max()`
+  return ChunkID{static_cast<uint32_t>(_chunks.size())};
+}
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
   auto column_it = std::find(_column_names.cbegin(), _column_names.cend(), column_name);
