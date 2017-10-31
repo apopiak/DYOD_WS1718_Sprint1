@@ -18,7 +18,7 @@ int main() {
   auto table = std::make_shared<opossum::Table>();
   table->add_column("values", "int");
   table->append({3});
-  auto &man = opossum::StorageManager::get();
+  auto& man = opossum::StorageManager::get();
   man.add_table("my table", table);
   man.add_table("", table);
   man.print(std::cout);
