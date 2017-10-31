@@ -17,10 +17,13 @@ namespace opossum {
 void Chunk::add_column(std::shared_ptr<BaseColumn> column) { _columns.push_back(column); }
 
 void Chunk::append(const std::vector<AllTypeVariant> values) {
-  DebugAssert(values.size() == _columns.size(),
-              "Tried to append value vector with differing amount of columns to the chunk.");
-  for (uint16_t index = 0; index < values.size(); ++index) {
-    _columns[index]->append(values[index]);
+  DebugAssert(values.size() == col_count(), "chunk::append: number of values does not match the number of columns");
+
+  auto value_it = values.begin();
+  auto value_end = values.end();
+  auto column_it = _columns.begin();
+  for (; value_it != value_end; ++value_it, ++column_it) {
+    (*column_it)->append(*value_it);
   }
 }
 
