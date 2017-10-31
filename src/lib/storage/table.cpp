@@ -72,7 +72,7 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
   if (column_it == _column_names.cend()) {
     throw std::invalid_argument("column with name '" + column_name + "' not found");
   }
-  return ColumnID{std::distance(_column_names.cbegin(), column_it)};
+  return ColumnID{static_cast<uint16_t>(std::distance(_column_names.cbegin(), column_it))};
 }
 
 uint32_t Table::chunk_size() const { return _max_chunk_size; }
