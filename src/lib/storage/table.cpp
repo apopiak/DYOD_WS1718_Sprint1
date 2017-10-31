@@ -37,6 +37,8 @@ void Table::add_column(const std::string& name, const std::string& type) {
 
 void Table::append(std::vector<AllTypeVariant> values) {
   auto& chunk = _chunks.back();
+  // because the unlimited size leads to a maximum size of `numeric_limits<uint32_t>::max()`
+  // we always check against the `_max_chunk_size`
   if (chunk.size() < _max_chunk_size) {
     chunk.append(values);
   } else {
@@ -56,7 +58,7 @@ void Table::create_new_chunk() {
 uint16_t Table::col_count() const { return _column_names.size(); }
 
 uint64_t Table::row_count() const {
-  // all chunks except the last one got exactly _max_chunk_size many elements
+  // all chunks except the last one have exactly ` _max_chunk_size many` elements
   return (chunk_count() - 1) * _max_chunk_size + _chunks.back().size();
 }
 
