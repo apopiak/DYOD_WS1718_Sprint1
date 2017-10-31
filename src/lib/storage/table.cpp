@@ -18,6 +18,7 @@
 namespace opossum {
 
 Table::Table(const uint32_t chunk_size)
+    // we want to limit the size of a chunk to the maximum size of our size type in any case though
     : _max_chunk_size(chunk_size > 0 ? chunk_size : std::numeric_limits<uint32_t>::max()) {
   create_new_chunk();
 }
