@@ -28,14 +28,13 @@ void Chunk::append(const std::vector<AllTypeVariant>& values) {
 }
 
 std::shared_ptr<BaseColumn> Chunk::get_column(ColumnID column_id) const {
-  DebugAssert(column_id < _columns.size(), "Chunk::get_column: column_id out of range: " + std::to_string(column_id));
-  return _columns[column_id];
+  return _columns.at(column_id);
 }
 
 uint16_t Chunk::col_count() const { return _columns.size(); }
 
 uint32_t Chunk::size() const {
-  if (!_columns.size()) {
+  if (_columns.empty()) {
     return 0;
   } else {
     return _columns[0]->size();
