@@ -75,7 +75,7 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
   return ColumnID{static_cast<uint16_t>(std::distance(_column_names.cbegin(), column_it))};
 }
 
-uint32_t Table::chunk_size() const { return _max_chunk_size; }
+uint32_t Table::chunk_size() const { return _max_chunk_size == std::numeric_limits<uint32_t>::max() ? 0 : _max_chunk_size; }
 
 const std::vector<std::string>& Table::column_names() const { return _column_names; }
 
