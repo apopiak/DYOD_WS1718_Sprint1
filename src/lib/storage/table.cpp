@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "value_column.hpp"
+#include "dictionary_column.hpp"
 
 #include "resolve_type.hpp"
 #include "types.hpp"
@@ -95,6 +96,16 @@ const Chunk& Table::get_chunk(ChunkID chunk_id) const {
   return _chunks.at(chunk_id.t);
 }
 
-void Table::compress_chunk(ChunkID chunk_id) { throw std::runtime_error("TODO"); }
+void Table::compress_chunk(ChunkID chunk_id) {
+  Chunk dictChunk;
+  Chunk& valueChunk = get_chunk(chunk_id);
+
+  for(ColumnID i = static_cast<ColumnID>(0); i < valueChunk.size(); ++i) {
+    auto column = valueChunk.get_column(i);
+    dictChunk.add_column(make_shared_by_column_type<BaseColumn, DictionaryColumn>(column_type(i), column));
+  }
+
+  valueChunk = std::move(dictChunk);
+}
 
 }  // namespace opossum
