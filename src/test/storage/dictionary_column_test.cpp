@@ -1,10 +1,12 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 #include "gtest/gtest.h"
 
 #include "../../lib/resolve_type.hpp"
+#include "../../lib/type_cast.hpp"
 #include "../../lib/storage/base_column.hpp"
 #include "../../lib/storage/dictionary_column.hpp"
 #include "../../lib/storage/value_column.hpp"
@@ -39,6 +41,21 @@ TEST_F(StorageDictionaryColumnTest, CompressColumnString) {
   EXPECT_EQ((*dict)[1], "Bill");
   EXPECT_EQ((*dict)[2], "Hasso");
   EXPECT_EQ((*dict)[3], "Steve");
+
+  // Test accessors
+  EXPECT_EQ(opossum::type_cast<std::string>((*dict_col)[0]), "Bill");
+  EXPECT_EQ(dict_col->get(0), "Bill");
+
+  // Test order of initial values
+  EXPECT_EQ(dict_col->get(0), "Bill");
+  EXPECT_EQ(dict_col->get(1), "Steve");
+  EXPECT_EQ(dict_col->get(2), "Alexander");
+  EXPECT_EQ(dict_col->get(3), "Steve");
+  EXPECT_EQ(dict_col->get(4), "Hasso");
+  EXPECT_EQ(dict_col->get(5), "Bill");
+
+  // Test immutability
+  EXPECT_THROW(dict_col->append(1), std::exception);  
 }
 
 TEST_F(StorageDictionaryColumnTest, LowerUpperBound) {
@@ -56,4 +73,25 @@ TEST_F(StorageDictionaryColumnTest, LowerUpperBound) {
   EXPECT_EQ(dict_col->upper_bound(15), opossum::INVALID_VALUE_ID);
 }
 
+TEST_F(StorageDictionaryColumnTest, VariableWidthAttributeVector) {
+  {
+    auto v = std::make_shared<opossum::ValueColumn<int>>(opossum::ValueColumn<int>());
+    auto limit = std::numeric_limits<uint8_t>::max() + 1;
+    for(uint16_t i = 0; i < limit ; i++) {
+      v->append(i);   
+    }
+
+    opossum::DictionaryColumn<int> dict_col(v);
+    auto attribute_vector = dict_col.attribute_vector();
+    EXPECT_EQ(static_cast<uint>(attribute_vector->width()), sizeof(uint16_t));
+  }
+  {
+    auto v = std::make_shared<opossum::ValueColumn<std::string>>(opossum::ValueColumn<std::string>());
+    v->append("0");
+    
+    opossum::DictionaryColumn<int> dict_col(v);
+    auto attribute_vector = dict_col.attribute_vector();
+    EXPECT_EQ(static_cast<uint>(attribute_vector->width()), sizeof(uint8_t));
+  }
+}
 //TODO(student): You should add some more tests here (full coverage would be appreciated) and possibly in other files.
