@@ -14,6 +14,8 @@ set(
     storage/table.hpp
     storage/value_column.cpp
     storage/value_column.hpp
+    storage/fitted_attribute_vector.cpp
+    storage/fitted_attribute_vector.hpp
     type_cast.cpp
     type_cast.hpp
     types.hpp

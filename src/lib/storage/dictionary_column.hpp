@@ -11,6 +11,7 @@
 #include "types.hpp"
 #include "base_attribute_vector.hpp"
 #include "type_cast.hpp"
+#include "fitted_attribute_vector.hpp"
 
 namespace opossum {
 
@@ -24,13 +25,13 @@ constexpr ValueID INVALID_VALUE_ID{std::numeric_limits<ValueID::base_type>::max(
 template <typename T>
 class DictionaryColumn : public BaseColumn {
  public:
+
+  DictionaryColumn() = delete;
+
   /**
    * Creates a Dictionary column from a given value column.
    */
-  explicit DictionaryColumn(const std::shared_ptr<BaseColumn>& base_column) {
-    
-    _attribute_vector = std::make_shared<std::vector<int64_t>>();
-
+  explicit DictionaryColumn(const std::shared_ptr<BaseColumn>& base_column) : _dictionary(nullptr), _attribute_vector(nullptr) {
     std::set<T> sorter;
     for(size_t i = 0; i < base_column->size(); ++i) {
       sorter.insert(type_cast<T>((*base_column)[i]));
@@ -40,9 +41,22 @@ class DictionaryColumn : public BaseColumn {
     _dictionary->reserve(sorter.size());
     std::copy(sorter.begin(), sorter.end(), std::back_inserter(*_dictionary));
 
+    if(sorter.size() > std::numeric_limits<uint32_t>::max()) {
+      _attribute_vector = std::make_shared<FittedAttributeVector<uint64_t>>();
+    }
+    else if (sorter.size() > std::numeric_limits<uint16_t>::max()) {
+      _attribute_vector = std::make_shared<FittedAttributeVector<uint32_t>>();
+    }
+    else if (sorter.size() > std::numeric_limits<uint8_t>::max()) {
+      _attribute_vector = std::make_shared<FittedAttributeVector<uint16_t>>();
+    }
+    else {
+      _attribute_vector = std::make_shared<FittedAttributeVector<uint8_t>>();
+    }
+
     for(size_t i = 0; i < base_column->size(); ++i) {
       auto it = sorter.find(type_cast<T>((*base_column)[i]));
-      _attribute_vector->push_back(std::distance(sorter.begin(), it));
+      _attribute_vector->set(_attribute_vector->size(), static_cast<ValueID>(std::distance(sorter.begin(), it)));
     } 
   }
 
@@ -51,12 +65,12 @@ class DictionaryColumn : public BaseColumn {
 
   // return the value at a certain position. If you want to write efficient operators, back off!
   const AllTypeVariant operator[](const size_t i) const override {
-    return _dictionary->at(_attribute_vector->at(i));
+    return _dictionary->at(_attribute_vector->get(i));
   }
 
   // return the value at a certain position.
   const T get(const size_t i) const {
-    return _dictionary->at(_attribute_vector->at(i));
+    return _dictionary->at(_attribute_vector->get(i));
   }
 
   // dictionary columns are immutable
@@ -123,7 +137,7 @@ class DictionaryColumn : public BaseColumn {
 
  protected:
   std::shared_ptr<std::vector<T>> _dictionary;
-  std::shared_ptr<std::vector<int64_t>> _attribute_vector;
+  std::shared_ptr<BaseAttributeVector> _attribute_vector;
 };
 
 }  // namespace opossum
