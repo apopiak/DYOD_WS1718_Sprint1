@@ -28,20 +28,17 @@ class DictionaryColumn : public BaseColumn {
    * Creates a Dictionary column from a given value column.
    */
   explicit DictionaryColumn(const std::shared_ptr<BaseColumn>& base_column) {
-    _dictionary = std::make_shared<std::vector<T>>();
+    
     _attribute_vector = std::make_shared<std::vector<int64_t>>();
 
     std::set<T> sorter;
     for(size_t i = 0; i < base_column->size(); ++i) {
       sorter.insert(type_cast<T>((*base_column)[i]));
     }
-    
-    for(auto v : sorter) {
-      _dictionary->push_back(v);
-    }
-    //_dictionary->reserve(sorter.size());
-    //std::copy(sorter.begin(), sorter.end(), _dictionary->begin());
-    std::cout << _dictionary->size() << std::endl;
+
+    _dictionary = std::make_shared<std::vector<T>>();
+    _dictionary->reserve(sorter.size());
+    std::copy(sorter.begin(), sorter.end(), std::back_inserter(*_dictionary));
 
     for(size_t i = 0; i < base_column->size(); ++i) {
       auto it = sorter.find(type_cast<T>((*base_column)[i]));
