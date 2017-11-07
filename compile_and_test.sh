@@ -17,3 +17,9 @@ if [ "$target" = "hyriseTest" ]; then
 elif [ "$target" = "hyriseCoverage" ]; then
     ./scripts/coverage.sh "$build_dir"
 fi
+if [ $? != 0 ]; then
+    exit 0
+fi
+if [ $2 = "open" ]; then
+    xdg-open "coverage/index.html"
+fi
