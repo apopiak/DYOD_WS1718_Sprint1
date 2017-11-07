@@ -8,6 +8,7 @@
 #include "../../lib/storage/base_column.hpp"
 #include "../../lib/storage/dictionary_column.hpp"
 #include "../../lib/storage/value_column.hpp"
+#include "../../lib/storage/fitted_attribute_vector.hpp"
 
 class StorageDictionaryColumnTest : public ::testing::Test {
  protected:
