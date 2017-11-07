@@ -15,5 +15,5 @@ cd ".."
 if [ "$target" = "hyriseTest" ]; then
     ./$build_dir/$test_command
 elif [ "$target" = "hyriseCoverage" ]; then
-    ./scripts/coverage.sh
+    ./scripts/coverage.sh "$build_dir"
 fi
