@@ -32,10 +32,13 @@ class DictionaryColumn : public BaseColumn {
    * Creates a Dictionary column from a given value column.
    */
   explicit DictionaryColumn(const std::shared_ptr<BaseColumn>& base_column) : _dictionary(nullptr), _attribute_vector(nullptr) {
-    auto& value_column = std::dynamic_pointer_cast<ValueColumn<T>>(base_column);
+    auto value_column = std::dynamic_pointer_cast<ValueColumn<T>>(base_column);
+    DebugAssert(value_column != nullptr, "Type of ValueColumn does not match type of DictionaryColumn.");
 
-    const std::vector<T> values = value_column->values();
-    std::set<T> sorter(values->cbegin(), values->cend());
+    const std::vector<T>& values = value_column->values();
+    std::set<T> sorter(values.cbegin(), values.end());
+
+    std::cout<< sorter.size() << std::endl;
 
     _dictionary = std::make_shared<std::vector<T>>();
     _dictionary->reserve(sorter.size());

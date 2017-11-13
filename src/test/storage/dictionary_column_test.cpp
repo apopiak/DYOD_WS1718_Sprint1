@@ -89,7 +89,7 @@ TEST_F(StorageDictionaryColumnTest, VariableWidthAttributeVector) {
     auto v = std::make_shared<opossum::ValueColumn<std::string>>(opossum::ValueColumn<std::string>());
     v->append("0");
     
-    opossum::DictionaryColumn<int> dict_col(v);
+    opossum::DictionaryColumn<std::string> dict_col(v);
     auto attribute_vector = dict_col.attribute_vector();
     EXPECT_EQ(static_cast<uint>(attribute_vector->width()), sizeof(uint8_t));
   }

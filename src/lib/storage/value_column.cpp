@@ -31,7 +31,7 @@ size_t ValueColumn<T>::size() const {
 }
 
 template <typename T>
-const std::vector<T>& values() const{
+const std::vector<T>& ValueColumn<T>::values() const{
   return _values;
 }
 
