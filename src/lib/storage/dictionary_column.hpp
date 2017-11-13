@@ -41,8 +41,6 @@ class DictionaryColumn : public BaseColumn {
     const std::vector<T>& values = value_column->values();
     std::set<T> sorter(values.cbegin(), values.end());
 
-    std::cout << sorter.size() << std::endl;
-
     _dictionary = std::make_shared<std::vector<T>>();
     _dictionary->reserve(sorter.size());
     std::copy(sorter.begin(), sorter.end(), std::back_inserter(*_dictionary));
