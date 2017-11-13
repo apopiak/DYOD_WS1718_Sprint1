@@ -32,30 +32,19 @@ class DictionaryColumn : public BaseColumn {
    * Creates a Dictionary column from a given value column.
    */
   explicit DictionaryColumn(const std::shared_ptr<BaseColumn>& base_column) : _dictionary(nullptr), _attribute_vector(nullptr) {
-    std::set<T> sorter;
-    for(size_t i = 0; i < base_column->size(); ++i) {
-      sorter.insert(type_cast<T>((*base_column)[i]));
-    }
+    auto& value_column = std::dynamic_pointer_cast<ValueColumn<T>>(base_column);
+
+    const std::vector<T> values = value_column->values();
+    std::set<T> sorter(values->cbegin(), values->cend());
 
     _dictionary = std::make_shared<std::vector<T>>();
     _dictionary->reserve(sorter.size());
     std::copy(sorter.begin(), sorter.end(), std::back_inserter(*_dictionary));
 
-    if(sorter.size() > std::numeric_limits<uint32_t>::max()) {
-      _attribute_vector = std::make_shared<FittedAttributeVector<uint64_t>>();
-    }
-    else if (sorter.size() > std::numeric_limits<uint16_t>::max()) {
-      _attribute_vector = std::make_shared<FittedAttributeVector<uint32_t>>();
-    }
-    else if (sorter.size() > std::numeric_limits<uint8_t>::max()) {
-      _attribute_vector = std::make_shared<FittedAttributeVector<uint16_t>>();
-    }
-    else {
-      _attribute_vector = std::make_shared<FittedAttributeVector<uint8_t>>();
-    }
+    _attribute_vector = _create_attribute_vector(sorter.size());
 
-    for(size_t i = 0; i < base_column->size(); ++i) {
-      auto it = sorter.find(type_cast<T>((*base_column)[i]));
+    for(size_t i = 0; i < values.size(); ++i) {
+      auto it = sorter.find(values.at(i));
       _attribute_vector->set(_attribute_vector->size(), static_cast<ValueID>(std::distance(sorter.begin(), it)));
     } 
   }
@@ -138,6 +127,21 @@ class DictionaryColumn : public BaseColumn {
  protected:
   std::shared_ptr<std::vector<T>> _dictionary;
   std::shared_ptr<BaseAttributeVector> _attribute_vector;
+
+  std::shared_ptr<BaseAttributeVector> _create_attribute_vector(uint64_t size) {
+    if(size > std::numeric_limits<uint32_t>::max()) {
+      return std::make_shared<FittedAttributeVector<uint64_t>>();
+    }
+    else if (size > std::numeric_limits<uint16_t>::max()) {
+      return std::make_shared<FittedAttributeVector<uint32_t>>();
+    }
+    else if (size > std::numeric_limits<uint8_t>::max()) {
+      return std::make_shared<FittedAttributeVector<uint16_t>>();
+    }
+    else {
+      return std::make_shared<FittedAttributeVector<uint8_t>>();
+    }
+  }
 };
 
 }  // namespace opossum
