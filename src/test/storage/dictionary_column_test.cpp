@@ -1,16 +1,17 @@
-#include <memory>
-#include <string>
 #include <iostream>
+#include <memory>
 #include <sstream>
+#include <string>
+#include <limits>
 
 #include "gtest/gtest.h"
 
 #include "../../lib/resolve_type.hpp"
-#include "../../lib/type_cast.hpp"
 #include "../../lib/storage/base_column.hpp"
 #include "../../lib/storage/dictionary_column.hpp"
-#include "../../lib/storage/value_column.hpp"
 #include "../../lib/storage/fitted_attribute_vector.hpp"
+#include "../../lib/storage/value_column.hpp"
+#include "../../lib/type_cast.hpp"
 
 class StorageDictionaryColumnTest : public ::testing::Test {
  protected:
@@ -55,7 +56,7 @@ TEST_F(StorageDictionaryColumnTest, CompressColumnString) {
   EXPECT_EQ(dict_col->get(5), "Bill");
 
   // Test immutability
-  EXPECT_THROW(dict_col->append(1), std::exception);  
+  EXPECT_THROW(dict_col->append(1), std::exception);
 }
 
 TEST_F(StorageDictionaryColumnTest, LowerUpperBound) {
@@ -77,8 +78,8 @@ TEST_F(StorageDictionaryColumnTest, VariableWidthAttributeVector) {
   {
     auto v = std::make_shared<opossum::ValueColumn<int>>(opossum::ValueColumn<int>());
     auto limit = std::numeric_limits<uint8_t>::max() + 1;
-    for(uint16_t i = 0; i < limit ; i++) {
-      v->append(i);   
+    for (uint16_t i = 0; i < limit; i++) {
+      v->append(i);
     }
 
     opossum::DictionaryColumn<int> dict_col(v);
@@ -88,10 +89,10 @@ TEST_F(StorageDictionaryColumnTest, VariableWidthAttributeVector) {
   {
     auto v = std::make_shared<opossum::ValueColumn<std::string>>(opossum::ValueColumn<std::string>());
     v->append("0");
-    
+
     opossum::DictionaryColumn<std::string> dict_col(v);
     auto attribute_vector = dict_col.attribute_vector();
     EXPECT_EQ(static_cast<uint>(attribute_vector->width()), sizeof(uint8_t));
   }
 }
-//TODO(student): You should add some more tests here (full coverage would be appreciated) and possibly in other files.
+// TODO(student): You should add some more tests here (full coverage would be appreciated) and possibly in other files.

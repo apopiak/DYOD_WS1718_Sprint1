@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
-#include "value_column.hpp"
 #include "dictionary_column.hpp"
+#include "value_column.hpp"
 
 #include "resolve_type.hpp"
 #include "types.hpp"
@@ -76,31 +76,25 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
   return ColumnID{static_cast<uint16_t>(std::distance(_column_names.cbegin(), column_it))};
 }
 
-uint32_t Table::chunk_size() const { return _max_chunk_size == std::numeric_limits<uint32_t>::max() ? 0 : _max_chunk_size; }
+uint32_t Table::chunk_size() const {
+  return _max_chunk_size == std::numeric_limits<uint32_t>::max() ? 0 : _max_chunk_size;
+}
 
 const std::vector<std::string>& Table::column_names() const { return _column_names; }
 
-const std::string& Table::column_name(ColumnID column_id) const {
-  return _column_names.at(column_id.t);
-}
+const std::string& Table::column_name(ColumnID column_id) const { return _column_names.at(column_id.t); }
 
-const std::string& Table::column_type(ColumnID column_id) const {
-  return _column_types.at(column_id.t);
-}
+const std::string& Table::column_type(ColumnID column_id) const { return _column_types.at(column_id.t); }
 
-Chunk& Table::get_chunk(ChunkID chunk_id) {
-  return _chunks.at(chunk_id.t);
-}
+Chunk& Table::get_chunk(ChunkID chunk_id) { return _chunks.at(chunk_id.t); }
 
-const Chunk& Table::get_chunk(ChunkID chunk_id) const {
-  return _chunks.at(chunk_id.t);
-}
+const Chunk& Table::get_chunk(ChunkID chunk_id) const { return _chunks.at(chunk_id.t); }
 
 void Table::compress_chunk(ChunkID chunk_id) {
   Chunk dictChunk;
   Chunk& valueChunk = get_chunk(chunk_id);
 
-  for(ColumnID i = static_cast<ColumnID>(0); i < valueChunk.size(); ++i) {
+  for (ColumnID i = static_cast<ColumnID>(0); i < valueChunk.size(); ++i) {
     auto column = valueChunk.get_column(i);
     dictChunk.add_column(make_shared_by_column_type<BaseColumn, DictionaryColumn>(column_type(i), column));
   }

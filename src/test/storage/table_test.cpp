@@ -8,9 +8,9 @@
 #include "gtest/gtest.h"
 
 #include "../lib/resolve_type.hpp"
-#include "../lib/type_cast.hpp"
-#include "../lib/storage/table.hpp"
 #include "../lib/storage/dictionary_column.hpp"
+#include "../lib/storage/table.hpp"
+#include "../lib/type_cast.hpp"
 
 namespace opossum {
 

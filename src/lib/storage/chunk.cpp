@@ -27,9 +27,7 @@ void Chunk::append(const std::vector<AllTypeVariant>& values) {
   }
 }
 
-std::shared_ptr<BaseColumn> Chunk::get_column(ColumnID column_id) const {
-  return _columns.at(column_id);
-}
+std::shared_ptr<BaseColumn> Chunk::get_column(ColumnID column_id) const { return _columns.at(column_id); }
 
 uint16_t Chunk::col_count() const { return _columns.size(); }
 

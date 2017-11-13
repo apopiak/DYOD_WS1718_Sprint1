@@ -53,14 +53,14 @@ TEST_F(StorageStorageManagerTest, HasTable) {
 TEST_F(StorageStorageManagerTest, AddTable) {
   auto& sm = StorageManager::get();
   auto t1 = std::make_shared<Table>();
-  EXPECT_THROW(sm.add_table("first_table", t1), std::exception);  
+  EXPECT_THROW(sm.add_table("first_table", t1), std::exception);
 }
 
 TEST_F(StorageStorageManagerTest, TableNames) {
   auto& sm = StorageManager::get();
   auto names = sm.table_names();
   EXPECT_EQ(names.size(), 2u);
-  EXPECT_EQ(names.at(0), "first_table");  
+  EXPECT_EQ(names.at(0), "first_table");
   EXPECT_EQ(names.at(1), "second_table");
 }
 
