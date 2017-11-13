@@ -14,6 +14,7 @@
 #include "fitted_attribute_vector.hpp"
 #include "type_cast.hpp"
 #include "types.hpp"
+#include "value_column.hpp"
 
 namespace opossum {
 
