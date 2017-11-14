@@ -6,6 +6,7 @@
 #include "types.hpp"
 
 namespace opossum {
+
 template <typename T>
 class FittedAttributeVector : public BaseAttributeVector {
  public:
@@ -24,4 +25,5 @@ class FittedAttributeVector : public BaseAttributeVector {
  protected:
   std::vector<T> _attribute_vector;
 };
+
 }  // namespace opossum
