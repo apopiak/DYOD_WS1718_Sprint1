@@ -39,7 +39,7 @@ class DictionaryColumn : public BaseColumn {
     DebugAssert(value_column != nullptr, "Type of ValueColumn does not match type of DictionaryColumn.");
 
     const std::vector<T>& values = value_column->values();
-    std::set<T> sorter(values.cbegin(), values.end());
+    std::set<T> sorter(values.cbegin(), values.cend());
 
     _dictionary = std::make_shared<std::vector<T>>();
     _dictionary->reserve(sorter.size());
@@ -47,9 +47,9 @@ class DictionaryColumn : public BaseColumn {
 
     _attribute_vector = _create_attribute_vector(sorter.size());
 
-    for (size_t i = 0; i < values.size(); ++i) {
-      auto it = sorter.find(values.at(i));
-      _attribute_vector->set(_attribute_vector->size(), static_cast<ValueID>(std::distance(sorter.begin(), it)));
+    for (const auto& value : values) {
+      const auto it = sorter.find(value);
+      _attribute_vector->set(_attribute_vector->size(), static_cast<ValueID>(std::distance(sorter.cbegin(), it)));
     }
   }
 
@@ -109,10 +109,7 @@ class DictionaryColumn : public BaseColumn {
   size_t size() const override { return _attribute_vector->size(); }
 
  protected:
-  std::shared_ptr<std::vector<T>> _dictionary;
-  std::shared_ptr<BaseAttributeVector> _attribute_vector;
-
-  std::shared_ptr<BaseAttributeVector> _create_attribute_vector(uint64_t size) {
+  static std::shared_ptr<BaseAttributeVector> _create_attribute_vector(uint64_t size) {
     if (size > std::numeric_limits<uint32_t>::max()) {
       return std::make_shared<FittedAttributeVector<uint64_t>>();
     } else if (size > std::numeric_limits<uint16_t>::max()) {
@@ -123,6 +120,10 @@ class DictionaryColumn : public BaseColumn {
       return std::make_shared<FittedAttributeVector<uint8_t>>();
     }
   }
+
+ protected:
+  std::shared_ptr<std::vector<T>> _dictionary;
+  std::shared_ptr<BaseAttributeVector> _attribute_vector;
 };
 
 }  // namespace opossum
