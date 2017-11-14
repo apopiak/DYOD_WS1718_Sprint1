@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <set>
@@ -43,7 +44,7 @@ class DictionaryColumn : public BaseColumn {
 
     _dictionary = std::make_shared<std::vector<T>>();
     _dictionary->reserve(sorter.size());
-    std::copy(sorter.begin(), sorter.end(), std::back_inserter(*_dictionary));
+    std::copy(sorter.cbegin(), sorter.cend(), std::back_inserter(*_dictionary));
 
     _attribute_vector = _create_attribute_vector(sorter.size());
 
@@ -77,9 +78,9 @@ class DictionaryColumn : public BaseColumn {
   // returns the first value ID that refers to a value >= the search value
   // returns INVALID_VALUE_ID if all values are smaller than the search value
   ValueID lower_bound(T value) const {
-    for (auto it = _dictionary->begin(); it < _dictionary->end(); ++it) {
+    for (auto it = _dictionary->cbegin(); it < _dictionary->cend(); ++it) {
       if (*it >= value) {
-        return static_cast<ValueID>(it - _dictionary->begin());
+        return static_cast<ValueID>(std::distance(_dictionary->cbegin(), it));
       }
     }
     return INVALID_VALUE_ID;
@@ -91,9 +92,9 @@ class DictionaryColumn : public BaseColumn {
   // returns the first value ID that refers to a value > the search value
   // returns INVALID_VALUE_ID if all values are smaller than or equal to the search value
   ValueID upper_bound(T value) const {
-    for (auto it = _dictionary->begin(); it < _dictionary->end(); ++it) {
+    for (auto it = _dictionary->cbegin(); it < _dictionary->cend(); ++it) {
       if (*it > value) {
-        return static_cast<ValueID>(it - _dictionary->begin());
+        return static_cast<ValueID>(std::distance(_dictionary->cbegin(), it));
       }
     }
     return INVALID_VALUE_ID;
