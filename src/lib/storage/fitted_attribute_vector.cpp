@@ -13,7 +13,7 @@ ValueID FittedAttributeVector<T>::get(const size_t i) const {
 template <typename T>
 void FittedAttributeVector<T>::set(const size_t i, const ValueID value_id) {
   DebugAssert(value_id.t <= std::numeric_limits<T>::max(), "Value out of range: " + std::to_string(value_id));
-  DebugAssert(i <= _attribute_vector.size(),"Index out of range: " + std::to_string(i));
+  DebugAssert(i <= _attribute_vector.size(), "Index out of range: " + std::to_string(i));
   _attribute_vector.insert(_attribute_vector.cbegin() + i, static_cast<T>(value_id));
 }
 

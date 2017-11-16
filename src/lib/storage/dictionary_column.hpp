@@ -79,7 +79,7 @@ class DictionaryColumn : public BaseColumn {
   // returns INVALID_VALUE_ID if all values are smaller than the search value
   ValueID lower_bound(T value) const {
     auto it = std::lower_bound(_dictionary->cbegin(), _dictionary->cend(), value);
-    if(it == _dictionary->cend()) {
+    if (it == _dictionary->cend()) {
       return INVALID_VALUE_ID;
     }
     return ValueID(std::distance(_dictionary->cbegin(), it));
@@ -92,7 +92,7 @@ class DictionaryColumn : public BaseColumn {
   // returns INVALID_VALUE_ID if all values are smaller than or equal to the search value
   ValueID upper_bound(T value) const {
     auto it = std::upper_bound(_dictionary->cbegin(), _dictionary->cend(), value);
-    if(it == _dictionary->cend()) {
+    if (it == _dictionary->cend()) {
       return INVALID_VALUE_ID;
     }
     return ValueID(std::distance(_dictionary->cbegin(), it));
