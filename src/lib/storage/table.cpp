@@ -77,8 +77,8 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
 }
 
 uint32_t Table::chunk_size() const {
-  // since we set _max_chunk_size to numeric limits if the user specifies it as 0, we also want to return 0 if he asks for the chunk_size
-  // see constructor initializer list
+  // since we set _max_chunk_size to numeric limits if the user specifies it as 0, we also want
+  // to return 0 if he asks for the chunk_size see constructor initializer list
   return _max_chunk_size == std::numeric_limits<uint32_t>::max() ? 0 : _max_chunk_size;
 }
 
