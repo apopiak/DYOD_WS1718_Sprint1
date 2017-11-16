@@ -28,6 +28,21 @@ class TableScan : public AbstractOperator {
 
  protected:
   std::shared_ptr<const Table> _on_execute() override;
+
+  class TableScanImplBase {
+    public:
+      virtual std::shared_ptr<const Table> scan(const Table& table, const ColumnID& _column_id, const ScanType& _scan_type, const AllTypeVariant& value);
+  };
+  template <typename T>
+  class TableScanImpl : public TableScanImplBase {
+    public:
+      std::shared_ptr<const Table> scan(const Table& table, const ColumnID& _column_id, const ScanType& _scan_type, const AllTypeVariant& value) override;    
+  };
+
+  ColumnID _column_id;
+  ScanType _scan_type;
+  AllTypeVariant _search_value;
+  
 };
 
 }  // namespace opossum
