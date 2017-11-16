@@ -104,4 +104,12 @@ void Table::compress_chunk(ChunkID chunk_id) {
   value_chunk = std::move(dict_chunk);
 }
 
+void Table::emplace_chunk(Chunk chunk) {
+  if(chunk_count() == 1 && _chunks.back().size() == 0) {
+    _chunks[0] = std::move(chunk);
+  } else {
+    _chunks.emplace_back(chunk);
+  }
+}
+
 }  // namespace opossum
