@@ -1,26 +1,20 @@
 #include <limits>
 
 #include "fitted_attribute_vector.hpp"
+#include "utils/assert.hpp"
 
 namespace opossum {
 
 template <typename T>
 ValueID FittedAttributeVector<T>::get(const size_t i) const {
-  return static_cast<ValueID>(_attribute_vector.at(i));
+  return ValueID(_attribute_vector.at(i));
 }
 
 template <typename T>
 void FittedAttributeVector<T>::set(const size_t i, const ValueID value_id) {
-  if (value_id > std::numeric_limits<T>::max()) {
-    throw std::invalid_argument("Value out of range: " + std::to_string(value_id));
-  } else if (i == _attribute_vector.size()) {
-    _attribute_vector.push_back(static_cast<T>(value_id));
-  } else if (i >= 0 && i < _attribute_vector.size()) {
-    const auto it = _attribute_vector.cbegin() + i;
-    _attribute_vector.insert(it, static_cast<T>(value_id));
-  } else {
-    throw std::out_of_range("Index out of range: " + std::to_string(i));
-  }
+  DebugAssert(value_id.t <= std::numeric_limits<T>::max(), "Value out of range: " + std::to_string(value_id));
+  DebugAssert(i <= _attribute_vector.size(),"Index out of range: " + std::to_string(i));
+  _attribute_vector.insert(_attribute_vector.cbegin() + i, static_cast<T>(value_id));
 }
 
 template <typename T>
