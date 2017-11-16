@@ -36,7 +36,7 @@ class DictionaryColumn : public BaseColumn {
    */
   explicit DictionaryColumn(const std::shared_ptr<BaseColumn>& base_column)
       : _dictionary(nullptr), _attribute_vector(nullptr) {
-    auto value_column = std::dynamic_pointer_cast<ValueColumn<T>>(base_column);
+    const auto value_column = std::dynamic_pointer_cast<const ValueColumn<T>>(base_column);
     DebugAssert(value_column != nullptr, "Type of ValueColumn does not match type of DictionaryColumn.");
 
     const std::vector<T>& values = value_column->values();
@@ -50,7 +50,7 @@ class DictionaryColumn : public BaseColumn {
 
     for (const auto& value : values) {
       const auto it = sorter.find(value);
-      _attribute_vector->set(_attribute_vector->size(), static_cast<ValueID>(std::distance(sorter.cbegin(), it)));
+      _attribute_vector->set(_attribute_vector->size(), ValueID(std::distance(sorter.cbegin(), it)));
     }
   }
 
@@ -78,12 +78,11 @@ class DictionaryColumn : public BaseColumn {
   // returns the first value ID that refers to a value >= the search value
   // returns INVALID_VALUE_ID if all values are smaller than the search value
   ValueID lower_bound(T value) const {
-    for (auto it = _dictionary->cbegin(); it < _dictionary->cend(); ++it) {
-      if (*it >= value) {
-        return static_cast<ValueID>(std::distance(_dictionary->cbegin(), it));
-      }
+    auto it = std::lower_bound(_dictionary->cbegin(), _dictionary->cend(), value);
+    if(it == _dictionary->cend()) {
+      return INVALID_VALUE_ID;
     }
-    return INVALID_VALUE_ID;
+    return ValueID(std::distance(_dictionary->cbegin(), it));
   }
 
   // same as lower_bound(T), but accepts an AllTypeVariant
@@ -92,12 +91,11 @@ class DictionaryColumn : public BaseColumn {
   // returns the first value ID that refers to a value > the search value
   // returns INVALID_VALUE_ID if all values are smaller than or equal to the search value
   ValueID upper_bound(T value) const {
-    for (auto it = _dictionary->cbegin(); it < _dictionary->cend(); ++it) {
-      if (*it > value) {
-        return static_cast<ValueID>(std::distance(_dictionary->cbegin(), it));
-      }
+    auto it = std::upper_bound(_dictionary->cbegin(), _dictionary->cend(), value);
+    if(it == _dictionary->cend()) {
+      return INVALID_VALUE_ID;
     }
-    return INVALID_VALUE_ID;
+    return ValueID(std::distance(_dictionary->cbegin(), it));
   }
 
   // same as upper_bound(T), but accepts an AllTypeVariant
@@ -110,10 +108,8 @@ class DictionaryColumn : public BaseColumn {
   size_t size() const override { return _attribute_vector->size(); }
 
  protected:
-  static std::shared_ptr<BaseAttributeVector> _create_attribute_vector(uint64_t size) {
-    if (size > std::numeric_limits<uint32_t>::max()) {
-      return std::make_shared<FittedAttributeVector<uint64_t>>();
-    } else if (size > std::numeric_limits<uint16_t>::max()) {
+  static std::shared_ptr<BaseAttributeVector> _create_attribute_vector(size_t size) {
+    if (size > std::numeric_limits<uint16_t>::max()) {
       return std::make_shared<FittedAttributeVector<uint32_t>>();
     } else if (size > std::numeric_limits<uint8_t>::max()) {
       return std::make_shared<FittedAttributeVector<uint16_t>>();

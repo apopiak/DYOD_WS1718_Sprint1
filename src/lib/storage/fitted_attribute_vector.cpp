@@ -33,7 +33,6 @@ AttributeVectorWidth FittedAttributeVector<T>::width() const {
   return sizeof(T);
 }
 
-template class FittedAttributeVector<uint64_t>;
 template class FittedAttributeVector<uint32_t>;
 template class FittedAttributeVector<uint16_t>;
 template class FittedAttributeVector<uint8_t>;
