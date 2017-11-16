@@ -77,6 +77,8 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
 }
 
 uint32_t Table::chunk_size() const {
+  // since we set _max_chunk_size to numeric limits if the user specifies it as 0, we also want to return 0 if he asks for the chunk_size
+  // see constructor initializer list
   return _max_chunk_size == std::numeric_limits<uint32_t>::max() ? 0 : _max_chunk_size;
 }
 
@@ -91,15 +93,15 @@ Chunk& Table::get_chunk(ChunkID chunk_id) { return _chunks.at(chunk_id.t); }
 const Chunk& Table::get_chunk(ChunkID chunk_id) const { return _chunks.at(chunk_id.t); }
 
 void Table::compress_chunk(ChunkID chunk_id) {
-  Chunk dictChunk;
-  Chunk& valueChunk = get_chunk(chunk_id);
+  Chunk dict_chunk;
+  Chunk& value_chunk = get_chunk(chunk_id);
 
-  for (ColumnID i = static_cast<ColumnID>(0); i < valueChunk.size(); ++i) {
-    const auto column = valueChunk.get_column(i);
-    dictChunk.add_column(make_shared_by_column_type<BaseColumn, DictionaryColumn>(column_type(i), column));
+  for (ColumnID i = ColumnID(0); i < value_chunk.size(); ++i) {
+    const auto column = value_chunk.get_column(i);
+    dict_chunk.add_column(make_shared_by_column_type<BaseColumn, DictionaryColumn>(column_type(i), column));
   }
 
-  valueChunk = std::move(dictChunk);
+  value_chunk = std::move(dict_chunk);
 }
 
 }  // namespace opossum
