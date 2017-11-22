@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "resolve_type.hpp"
+#include "storage/dictionary_column.hpp"
 #include "storage/table.hpp"
 #include "storage/dictionary_column.hpp"
 #include "types.hpp"
@@ -10,19 +11,21 @@
 
 namespace {
     template <typename T>
-    std::function<bool(const T&, const T&)> make_comparator(ScanType scan_type) {
+    std::function<bool(const T&, const T&)> make_comparator(opossum::ScanType scan_type) {
+        using Type = opossum::ScanType;
         switch(scan_type) {
-            case OpEquals: return std::equal_to<T>;
-            case OpNotEquals: return std::not_equal_to<T>;
-            case OpLessThan: return std::less<T>;
-            case OpLessThanEquals: return std::less_equal<T>;
-            case OpGreaterThan: return std::greater<T>;
-            case OpGreaterThanEquals: return std::greater_equal<T>;
+            case Type::OpEquals: return std::equal_to<T>();
+            case Type::OpNotEquals: return std::not_equal_to<T>();
+            case Type::OpLessThan: return std::less<T>();
+            case Type::OpLessThanEquals: return std::less_equal<T>();
+            case Type::OpGreaterThan: return std::greater<T>();
+            case Type::OpGreaterThanEquals: return std::greater_equal<T>();
         }
     }
 }
 
 namespace opossum {
+
 TableScan::TableScan(const std::shared_ptr<const AbstractOperator> in, ColumnID column_id, const ScanType scan_type,
             const AllTypeVariant search_value) 
             : AbstractOperator(in)
@@ -47,20 +50,20 @@ std::shared_ptr<const Table> TableScan::_on_execute() {
 }
 
 template <typename T>
-std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(const Table& table, const ColumnID& _column_id, const ScanType& _scan_type, const AllTypeVariant& value) {
+std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(const Table& table, const ColumnID& column_id, ScanType scan_type, const AllTypeVariant& value) {
     // this holds the positions of all found values
     auto pos_list = std::make_shared<PosList>();
     // table that contains the chunk with reference columns
     auto output_table = std::make_shared<Table>();
-    auto comparator = make_comparator(scan_type);
+    auto comparator = make_comparator<T>(scan_type);
     auto t_value = type_cast<T>(value);
 
     // search through every chunk of the input table
     // store finds in pos_list
-    for (auto chunk_id = ChunkID(0); chunk_id < table.chunk_count; ++chunk_id) {
+    for (auto chunk_id = ChunkID(0); chunk_id < table.chunk_count(); ++chunk_id) {
         const auto& chunk = table.get_chunk(chunk_id);
         // get the column that will be searched
-        auto column = chunk.get_column(_column_id);
+        auto column = chunk.get_column(column_id);
 
         // Columns can be of types ValueColumn or DictColumn
         auto value_column = std::dynamic_pointer_cast<const ValueColumn<T>>(column);
@@ -69,7 +72,7 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(const Table& tabl
             const auto& values = value_column.values();
             for(auto chunk_offset = ChunkOffset(0); chunk_offset < values.size(); chunk_offset++) {
                 if(comparator(values[chunk_offset], t_value)) {
-                    pos_list.push_back(RowID{chunk_id,chunk_offset});
+                    pos_list->push_back(RowID{chunk_id,chunk_offset});
                 }
             }
         } 
@@ -114,10 +117,13 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(const Table& tabl
     }
 }
 
+<<<<<<< HEAD
 void add_all_values(PosList& pos_list, ChunkID chunk_id, ChunkOffset number_of_values) {
     pos_list.reserve(number_of_values);
     for(ChunkOffset i = 0; i < number_of_values; i++) {
         pos_list.push_back(RowID{chunk_id, i});
     }
 }
+=======
+>>>>>>> fix most obvious compile errors
 } // namespace opossum
