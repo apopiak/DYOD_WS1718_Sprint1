@@ -77,13 +77,47 @@ TEST_F(StorageTableTest, CompressChunk) {
   t.append({1, "Hi"});
   t.append({1, "Ho"});
   t.compress_chunk(ChunkID{0});
+
   auto& chunk = t.get_chunk(ChunkID{0});
   EXPECT_EQ(t.chunk_count(), ChunkID{1});
   EXPECT_EQ(chunk.size(), 2u);
   EXPECT_EQ(chunk.col_count(), 2u);
+
   auto intColumn = std::dynamic_pointer_cast<DictionaryColumn<int>>(chunk.get_column(ColumnID{0}));
   EXPECT_EQ(intColumn->size(), 2u);
+  EXPECT_EQ(intColumn->unique_values_count(), 1u);
   EXPECT_EQ(intColumn->get(0), 1);
+  EXPECT_EQ(intColumn->get(1), 1);
+}
+
+TEST_F(StorageTableTest, CompressChunks) {
+  t.append({1, "Hi"});
+  t.append({1, "Ho"});
+  t.append({2, "Bye"});
+  t.append({2, "Ciao"});
+  t.append({3, "More"});
+  t.append({3, "Chunks"});
+
+  t.compress_chunk(ChunkID{0});
+  t.compress_chunk(ChunkID{1});
+
+  auto& chunk = t.get_chunk(ChunkID{0});
+  EXPECT_EQ(t.chunk_count(), ChunkID{3});
+  EXPECT_EQ(chunk.size(), 2u);
+  EXPECT_EQ(chunk.col_count(), 2u);
+
+  auto intColumn = std::dynamic_pointer_cast<DictionaryColumn<int>>(chunk.get_column(ColumnID{0}));
+  EXPECT_EQ(intColumn->size(), 2u);
+  EXPECT_EQ(intColumn->unique_values_count(), 1u);
+  EXPECT_EQ(intColumn->get(0), 1);
+  EXPECT_EQ(intColumn->get(1), 1);
+
+  auto& second_chunk = t.get_chunk(ChunkID{1});
+  auto second_column = std::dynamic_pointer_cast<DictionaryColumn<int>>(second_chunk.get_column(ColumnID{0}));
+  EXPECT_EQ(second_column->size(), 2u);
+  EXPECT_EQ(second_column->unique_values_count(), 1u);
+  EXPECT_EQ(second_column->get(0), 2);
+  EXPECT_EQ(second_column->get(1), 2);
 }
 
 }  // namespace opossum
