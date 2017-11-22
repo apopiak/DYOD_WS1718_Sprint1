@@ -46,7 +46,7 @@ class ReferenceColumn : public BaseColumn {
  protected:
   std::shared_ptr<const Table> _referenced_table;
   const ColumnID _referenced_column_id;
-  std::shared_ptr<PosList> _pos_list;
+  std::shared_ptr<const PosList> _pos_list;
 };
 
 }  // namespace opossum
