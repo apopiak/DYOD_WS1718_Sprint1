@@ -59,8 +59,13 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
     auto pos_list = std::make_shared<PosList>();
     // table that contains the chunk with reference columns
     auto output_table = std::make_shared<Table>();
-    auto t_comparator = make_comparator<T>(scan_type);
-    auto t_value = type_cast<T>(value);
+
+    for(ColumnID i{0}; i < table->col_count(); ++i) {
+        output_table->add_column_definition(table->column_name(i), table->column_type(i));
+    }
+
+    const auto t_comparator = make_comparator<T>(scan_type);
+    const auto t_value = type_cast<T>(value);
 
     if(table->chunk_count() == 1) {
         const auto& chunk = table->get_chunk(ChunkID{0});
@@ -85,13 +90,13 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
                     ref_val_vector = ref_val_col ? &ref_val_col->values() : nullptr;
                 }
                 if(ref_dict_col) {
-                    if(t_comparator(t_value, ref_dict_col->get(r.chunk_offset))) {
+                    if(t_comparator(ref_dict_col->get(r.chunk_offset), t_value)) {
                         pos_list->push_back(r);
                     }
                     continue;
                 }
                 if(ref_val_vector) {
-                    if(t_comparator(t_value, (*ref_val_vector)[r.chunk_offset])) {
+                    if(t_comparator((*ref_val_vector)[r.chunk_offset], t_value)) {
                         pos_list->push_back(r);
                     }
                     continue;
@@ -125,7 +130,7 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
         if(value_column) {
             // since ValueColumns are not sorted, just search through them linearly
             const auto& values = value_column->values();
-            for(auto chunk_offset = ChunkOffset(0); chunk_offset < values.size(); chunk_offset++) {
+            for(auto chunk_offset = ChunkOffset(0); chunk_offset < values.size(); ++chunk_offset) {
                 if(t_comparator(values[chunk_offset], t_value)) {
                     pos_list->push_back(RowID{chunk_id,chunk_offset});
                 }
@@ -198,7 +203,7 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
         auto attribute_vector = dict_column->attribute_vector();
 
         for(ChunkOffset i = 0; i < attribute_vector->size(); ++i) {
-            if(ValueID_comparator(comp_value, attribute_vector->get(i))) {
+            if(ValueID_comparator(attribute_vector->get(i),comp_value)) {
                 pos_list->push_back(RowID{chunk_id, i});
             }
         }
