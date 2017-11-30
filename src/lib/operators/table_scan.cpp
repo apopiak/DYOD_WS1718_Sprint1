@@ -54,13 +54,13 @@ std::shared_ptr<const Table> TableScan::_on_execute() {
 }
 
 template <typename T>
-std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<const Table> table, const ColumnID& _column_id, const ScanType _scan_type, const AllTypeVariant& value) {
+std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<const Table> table, const ColumnID& column_id, const ScanType scan_type, const AllTypeVariant& value) {
     // this holds the positions of all found values
     auto pos_list = std::make_shared<PosList>();
     // table that contains the chunk with reference columns
     auto output_table = std::make_shared<Table>();
-    auto t_comparator = make_comparator<T>(_scan_type);
-    auto ValueID_comparator = make_comparator<ValueID>(_scan_type);
+    auto t_comparator = make_comparator<T>(scan_type);
+    auto ValueID_comparator = make_comparator<ValueID>(scan_type);
     auto t_value = type_cast<T>(value);
 
     // search through every chunk of the input table
@@ -86,28 +86,27 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
             auto dict_column = std::dynamic_pointer_cast<const DictionaryColumn<T>>(column);
             DebugAssert(dict_column, "Unknown Column Type in Table Scan"); // make sure the above is the case; only in debug mode
             
-            DebugAssert(false, "not implemented");
-            // TODO: use
-            // const auto& dictionary = dict_column->dictionary();
+            const auto dictionary = dict_column->dictionary();
+
             // depending on the operator we need to select a proper ValueID
             // which accurately represents the Value we are searching for
             // (keep in mind it can be the case that the value we are searching for is not contained)
-            // TODO: use this value
-            // bool value_contained = std::binary_search(dictionary->cbegin(), dictionary->cend(), t_value);
+
+            bool value_contained = std::binary_search(dictionary->cbegin(), dictionary->cend(), t_value);
             
             if(!value_contained) {
-                if(_scan_type == ScanType::OpEquals) {
+                if(scan_type == ScanType::OpEquals) {
                     // no value can be equal
                     continue;
                 }
-                if(_scan_type == ScanType::OpNotEquals) {
+                if(scan_type == ScanType::OpNotEquals) {
                     add_all_values(*pos_list, chunk_id, dict_column->size());
                     continue;
                 }
             }
 
             ValueID comp_value;
-            switch(_scan_type) {
+            switch(scan_type) {
                 case ScanType::OpEquals: 
                 case ScanType::OpNotEquals:
                 case ScanType::OpLessThan: 
@@ -121,12 +120,12 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
             }
 
             if(comp_value == ValueID{0u}) {
-                if(_scan_type == ScanType::OpLessThanEquals || _scan_type == ScanType::OpLessThan) {
+                if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
                     // value is smaller than all the values in the column, there are no matches
                     // we can go to the next chunk
                     continue;
                 }
-                if(_scan_type == ScanType::OpGreaterThan || _scan_type == ScanType::OpGreaterThanEquals) {
+                if(scan_type == ScanType::OpGreaterThan || scan_type == ScanType::OpGreaterThanEquals) {
                     // every value is greater than the search value - add every position
                     add_all_values(*pos_list, chunk_id, dict_column->size());
                     continue;
@@ -135,12 +134,12 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
 
             // if upper_bound goes past the end
             if(comp_value == INVALID_VALUE_ID) {
-                if(_scan_type == ScanType::OpLessThanEquals || _scan_type == ScanType::OpLessThan) {
+                if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
                     // value is greater than all the values in the column
                     add_all_values(*pos_list, chunk_id, dict_column->size());
                     continue;
                 }
-                if(_scan_type == ScanType::OpGreaterThan || _scan_type == ScanType::OpGreaterThanEquals) {
+                if(scan_type == ScanType::OpGreaterThan || scan_type == ScanType::OpGreaterThanEquals) {
                     // every value is smaller than the search value 
                     continue;
                 }
