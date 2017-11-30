@@ -16,7 +16,7 @@ const AllTypeVariant ReferenceColumn::operator[](const size_t i) const {
   auto& row_id = (*_pos_list)[i];
   auto& chunk = _referenced_table->get_chunk(row_id.chunk_id);
   auto column = chunk.get_column(_referenced_column_id);
-  return (*column)[i];
+  return (*column)[row_id.chunk_offset];
 }
 
 }  // namespace opossum
