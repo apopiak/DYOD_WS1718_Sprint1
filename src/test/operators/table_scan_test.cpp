@@ -94,7 +94,6 @@ class OperatorsTableScanTest : public BaseTest {
         expected.erase(search);
       }
     }
-
     ASSERT_EQ(expected.size(), 0u);
   }
 
@@ -107,12 +106,8 @@ TEST_F(OperatorsTableScanTest, DoubleScan) {
   auto scan_1 = std::make_shared<TableScan>(_table_wrapper, ColumnID{0}, ScanType::OpGreaterThanEquals, 1234);
   scan_1->execute();
 
-  std::cout << "scan 1" << std::endl;
-
   auto scan_2 = std::make_shared<TableScan>(scan_1, ColumnID{1}, ScanType::OpLessThan, 457.9);
   scan_2->execute();
-
-  std::cout << "scan 2" << std::endl;
 
   EXPECT_TABLE_EQ(scan_2->get_output(), expected_result);
 }

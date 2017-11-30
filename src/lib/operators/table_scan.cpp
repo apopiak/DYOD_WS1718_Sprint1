@@ -174,6 +174,7 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
                 break;
         }
 
+        
         if(comp_value == ValueID{0u}) {
             if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
                 // value is smaller than all the values in the column, there are no matches
@@ -187,6 +188,7 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
             }
         }
 
+
         // if upper_bound goes past the end
         if(comp_value == INVALID_VALUE_ID) {
             if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
@@ -198,6 +200,10 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
                 // every value is smaller than the search value 
                 continue;
             }
+        }
+        
+        if(comp_value != ValueID{0} && comp_value != INVALID_VALUE_ID && (scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpGreaterThan)) {
+            comp_value--;
         }
         
         auto attribute_vector = dict_column->attribute_vector();
