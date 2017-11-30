@@ -31,12 +31,12 @@ class TableScan : public AbstractOperator {
 
   class TableScanImplBase {
     public:
-      virtual std::shared_ptr<const Table> scan(const Table& table, const ColumnID& column_id, ScanType scan_type, const AllTypeVariant& value);
+      virtual std::shared_ptr<const Table> scan(std::shared_ptr<const Table>table, const ColumnID& _column_id, const ScanType _scan_type, const AllTypeVariant& value);
   };
   template <typename T>
   class TableScanImpl : public TableScanImplBase {
     public:
-      std::shared_ptr<const Table> scan(const Table& table, const ColumnID& column_id, ScanType scan_type, const AllTypeVariant& value) override;    
+      std::shared_ptr<const Table> scan(std::shared_ptr<const Table> table, const ColumnID& _column_id, const ScanType _scan_type, const AllTypeVariant& value) override;    
   };
 
   ColumnID _column_id;

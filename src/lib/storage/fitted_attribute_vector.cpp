@@ -7,7 +7,8 @@ namespace opossum {
 
 template <typename T>
 ValueID FittedAttributeVector<T>::get(const size_t i) const {
-  return ValueID(_attribute_vector.at(i));
+  DebugAssert(i < _attribute_vector.size(), "Attribute Vector: Index out of Range");
+  return ValueID(_attribute_vector[i]);
 }
 
 template <typename T>
