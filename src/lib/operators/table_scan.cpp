@@ -31,7 +31,7 @@ namespace {
 namespace opossum {
 
 TableScan::TableScan(const std::shared_ptr<const AbstractOperator> in, ColumnID column_id, const ScanType scan_type,
-            const AllTypeVariant search_value) 
+            const AllTypeVariant search_value, const std::optional<AllTypeVariant> opt) 
             : AbstractOperator(in)
             , _column_id(column_id)
             , _scan_type(scan_type)
@@ -80,79 +80,83 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
                     pos_list->push_back(RowID{chunk_id,chunk_offset});
                 }
             }
+            continue;
         } 
-        // no need for extra if, because we know for certain that a column is either a Value- or DictColumn
-        else {
-            auto dict_column = std::dynamic_pointer_cast<const DictionaryColumn<T>>(column);
-            DebugAssert(dict_column, "Unknown Column Type in Table Scan"); // make sure the above is the case; only in debug mode
-            
-            const auto dictionary = dict_column->dictionary();
+        auto reference_column = std::dynamic_pointer_cast<const ReferenceColumn>(column);
+        if (reference_column) {
+            // search ref column
+            continue;
+        }
 
-            // depending on the operator we need to select a proper ValueID
-            // which accurately represents the Value we are searching for
-            // (keep in mind it can be the case that the value we are searching for is not contained)
+        auto dict_column = std::dynamic_pointer_cast<const DictionaryColumn<T>>(column);
+        DebugAssert(dict_column, "Unknown Column Type in Table Scan"); // make sure the above is the case; only in debug mode
+        
+        const auto dictionary = dict_column->dictionary();
 
-            bool value_contained = std::binary_search(dictionary->cbegin(), dictionary->cend(), t_value);
-            
-            if(!value_contained) {
-                if(scan_type == ScanType::OpEquals) {
-                    // no value can be equal
-                    continue;
-                }
-                if(scan_type == ScanType::OpNotEquals) {
-                    add_all_values(*pos_list, chunk_id, dict_column->size());
-                    continue;
-                }
+        // depending on the operator we need to select a proper ValueID
+        // which accurately represents the Value we are searching for
+        // (keep in mind it can be the case that the value we are searching for is not contained)
+
+        bool value_contained = std::binary_search(dictionary->cbegin(), dictionary->cend(), t_value);
+        
+        if(!value_contained) {
+            if(scan_type == ScanType::OpEquals) {
+                // no value can be equal
+                continue;
             }
-
-            ValueID comp_value;
-            switch(scan_type) {
-                case ScanType::OpEquals: 
-                case ScanType::OpNotEquals:
-                case ScanType::OpLessThan: 
-                case ScanType::OpGreaterThanEquals:
-                    comp_value = dict_column->lower_bound(t_value);
-                    break;
-                case ScanType::OpLessThanEquals:
-                case ScanType::OpGreaterThan:
-                    comp_value = dict_column->upper_bound(t_value);
-                    break;
+            if(scan_type == ScanType::OpNotEquals) {
+                add_all_values(*pos_list, chunk_id, dict_column->size());
+                continue;
             }
+        }
 
-            if(comp_value == ValueID{0u}) {
-                if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
-                    // value is smaller than all the values in the column, there are no matches
-                    // we can go to the next chunk
-                    continue;
-                }
-                if(scan_type == ScanType::OpGreaterThan || scan_type == ScanType::OpGreaterThanEquals) {
-                    // every value is greater than the search value - add every position
-                    add_all_values(*pos_list, chunk_id, dict_column->size());
-                    continue;
-                }
-            }
+        ValueID comp_value;
+        switch(scan_type) {
+            case ScanType::OpEquals: 
+            case ScanType::OpNotEquals:
+            case ScanType::OpLessThan: 
+            case ScanType::OpGreaterThanEquals:
+                comp_value = dict_column->lower_bound(t_value);
+                break;
+            case ScanType::OpLessThanEquals:
+            case ScanType::OpGreaterThan:
+                comp_value = dict_column->upper_bound(t_value);
+                break;
+        }
 
-            // if upper_bound goes past the end
-            if(comp_value == INVALID_VALUE_ID) {
-                if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
-                    // value is greater than all the values in the column
-                    add_all_values(*pos_list, chunk_id, dict_column->size());
-                    continue;
-                }
-                if(scan_type == ScanType::OpGreaterThan || scan_type == ScanType::OpGreaterThanEquals) {
-                    // every value is smaller than the search value 
-                    continue;
-                }
+        if(comp_value == ValueID{0u}) {
+            if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
+                // value is smaller than all the values in the column, there are no matches
+                // we can go to the next chunk
+                continue;
             }
-            
-            auto attribute_vector = dict_column->attribute_vector();
+            if(scan_type == ScanType::OpGreaterThan || scan_type == ScanType::OpGreaterThanEquals) {
+                // every value is greater than the search value - add every position
+                add_all_values(*pos_list, chunk_id, dict_column->size());
+                continue;
+            }
+        }
 
-            for(ChunkOffset i = 0; i < attribute_vector->size(); ++i) {
-                if(ValueID_comparator(comp_value, attribute_vector->get(i))) {
-                    pos_list->push_back(RowID{chunk_id, i});
-                }
+        // if upper_bound goes past the end
+        if(comp_value == INVALID_VALUE_ID) {
+            if(scan_type == ScanType::OpLessThanEquals || scan_type == ScanType::OpLessThan) {
+                // value is greater than all the values in the column
+                add_all_values(*pos_list, chunk_id, dict_column->size());
+                continue;
             }
-        } // end else (dictionary column case)
+            if(scan_type == ScanType::OpGreaterThan || scan_type == ScanType::OpGreaterThanEquals) {
+                // every value is smaller than the search value 
+                continue;
+            }
+        }
+        
+        auto attribute_vector = dict_column->attribute_vector();
+
+        for(ChunkOffset i = 0; i < attribute_vector->size(); ++i) {
+            if(ValueID_comparator(comp_value, attribute_vector->get(i))) {
+                pos_list->push_back(RowID{chunk_id, i});
+            }
+        }
     } // end for (chunks)
 
     Chunk reference_chunk;
@@ -173,5 +177,7 @@ void add_all_values(PosList& pos_list, ChunkID chunk_id, ChunkOffset number_of_v
         pos_list.push_back(RowID{chunk_id, i});
     }
 }
+
+EXPLICITLY_INSTANTIATE_COLUMN_TYPES(TableScan::TableScanImpl);
 
 } // namespace opossum
