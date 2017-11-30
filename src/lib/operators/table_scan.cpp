@@ -60,9 +60,59 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
     // table that contains the chunk with reference columns
     auto output_table = std::make_shared<Table>();
     auto t_comparator = make_comparator<T>(scan_type);
-    auto ValueID_comparator = make_comparator<ValueID>(scan_type);
     auto t_value = type_cast<T>(value);
 
+    if(table->chunk_count() == 1) {
+        const auto& chunk = table->get_chunk(ChunkID{0});
+        auto reference_column = std::dynamic_pointer_cast<const ReferenceColumn>(chunk.get_column(column_id));
+        if (reference_column) {
+            auto ref_table = reference_column->referenced_table();
+            auto ref_column_id = reference_column->referenced_column_id();
+            auto ref_pos_list = reference_column->pos_list();
+
+            auto ref_chunk_id = ChunkID{0};
+            const std::vector<T>* ref_val_vector = nullptr;
+            auto ref_dict_col = std::shared_ptr<const DictionaryColumn<T>>();
+            // go through the position list
+            for(const RowID & r : *ref_pos_list) {
+                // we assume that the RowIDs are sorted by ChunkID (ascending)
+                // thus we only have to fetch the columns once per referenced chunk
+                if(ref_chunk_id != r.chunk_id || (!ref_val_vector && !ref_dict_col) ) {
+                    ref_chunk_id = r.chunk_id;
+                    const auto& ref_chunk = ref_table->get_chunk(ref_chunk_id);
+                    ref_dict_col = std::dynamic_pointer_cast<const DictionaryColumn<T>>(ref_chunk.get_column(ref_column_id));
+                    auto ref_val_col = std::dynamic_pointer_cast<const ValueColumn<T>>(ref_chunk.get_column(ref_column_id));
+                    ref_val_vector = ref_val_col ? &ref_val_col->values() : nullptr;
+                }
+                if(ref_dict_col) {
+                    if(t_comparator(t_value, ref_dict_col->get(r.chunk_offset))) {
+                        pos_list->push_back(r);
+                    }
+                    continue;
+                }
+                if(ref_val_vector) {
+                    if(t_comparator(t_value, (*ref_val_vector)[r.chunk_offset])) {
+                        pos_list->push_back(r);
+                    }
+                    continue;
+                }
+                DebugAssert(false, "Unexpected Column Type when dereferencing ReferenceColumn");
+            }
+            Chunk reference_chunk;
+    
+            // create reference columns
+            for(ColumnID i{0}; i < ref_table->col_count(); ++i) {
+                auto reference_column = std::make_shared<ReferenceColumn>(ref_table, i, pos_list);
+                reference_chunk.add_column(reference_column);
+            }
+            
+            output_table->emplace_chunk(std::move(reference_chunk));
+
+            return output_table;
+        }
+    }
+
+    auto ValueID_comparator = make_comparator<ValueID>(scan_type);
     // search through every chunk of the input table
     // store finds in pos_list
     for (auto chunk_id = ChunkID(0); chunk_id < table->chunk_count(); ++chunk_id) {
@@ -82,11 +132,6 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
             }
             continue;
         } 
-        auto reference_column = std::dynamic_pointer_cast<const ReferenceColumn>(column);
-        if (reference_column) {
-            // search ref column
-            continue;
-        }
 
         auto dict_column = std::dynamic_pointer_cast<const DictionaryColumn<T>>(column);
         DebugAssert(dict_column, "Unknown Column Type in Table Scan"); // make sure the above is the case; only in debug mode
@@ -160,12 +205,13 @@ std::shared_ptr<const Table> TableScan::TableScanImpl<T>::scan(std::shared_ptr<c
     } // end for (chunks)
 
     Chunk reference_chunk;
-
+    
     // create reference columns
     for(ColumnID i{0}; i < table->col_count(); ++i) {
         auto reference_column = std::make_shared<ReferenceColumn>(table, i, pos_list);
         reference_chunk.add_column(reference_column);
     }
+
     output_table->emplace_chunk(std::move(reference_chunk));
 
     return output_table;
