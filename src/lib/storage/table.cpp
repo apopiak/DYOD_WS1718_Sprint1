@@ -59,8 +59,11 @@ void Table::create_new_chunk() {
 uint16_t Table::col_count() const { return _column_names.size(); }
 
 uint64_t Table::row_count() const {
-  // all chunks except the last one have exactly `_max_chunk_size` many elements
-  return (chunk_count() - 1) * _max_chunk_size + _chunks.back().size();
+  uint64_t count = 0;
+  for(ChunkID i{0}; i < chunk_count(); ++i) {
+    count += _chunks[i].size();
+  }
+  return count;
 }
 
 ChunkID Table::chunk_count() const {
