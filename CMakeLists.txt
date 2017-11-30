@@ -25,6 +25,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}) # Put binaries into root
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib) # Put libraries into their own dir
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
+find_package( Boost REQUIRED COMPONENTS program_options regex )
+include_directories( ${Boost_INCLUDE_DIRS} )
+
 # Include sub-CMakeLists.txt
 add_subdirectory(third_party/ EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
