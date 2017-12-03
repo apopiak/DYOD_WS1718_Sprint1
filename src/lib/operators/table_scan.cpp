@@ -1,10 +1,12 @@
 #include "table_scan.hpp"
 
 #include <functional>
+#include <utility>
+#include <memory>
+#include <vector>
 
 #include "resolve_type.hpp"
 #include "storage/chunk.hpp"
-#include "storage/dictionary_column.hpp"
 #include "storage/dictionary_column.hpp"
 #include "storage/reference_column.hpp"
 #include "storage/table.hpp"
@@ -32,7 +34,7 @@ std::function<bool(const T&, const T&)> make_comparator(opossum::ScanType scan_t
   DebugAssert(false, "Operator not Implemented");
   return [](T t1, T t2) { return false; };
 }
-}
+}  // namespace
 
 namespace opossum {
 

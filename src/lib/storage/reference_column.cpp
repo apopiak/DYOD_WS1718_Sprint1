@@ -1,5 +1,7 @@
 #include "reference_column.hpp"
 
+#include <memory>
+
 #include "utils/assert.hpp"
 
 namespace opossum {
