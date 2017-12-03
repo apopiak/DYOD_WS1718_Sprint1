@@ -275,4 +275,10 @@ TEST_F(OperatorsTableScanTest, ScanOnWideDictionaryColumn) {
   EXPECT_EQ(scan_2->get_output()->row_count(), static_cast<size_t>(37));
 }
 
+TEST_F(OperatorsTableScanTest, ScanWithMismatchedTypes) {
+  auto mismatch_scan = std::make_shared<opossum::TableScan>(_table_wrapper_even_dict, ColumnID{1}, ScanType::OpEquals, AllTypeVariant("not int"));
+
+  EXPECT_THROW(mismatch_scan->execute(), std::exception);
+}
+
 }  // namespace opossum
