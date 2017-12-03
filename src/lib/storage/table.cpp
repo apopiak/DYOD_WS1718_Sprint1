@@ -60,7 +60,7 @@ uint16_t Table::col_count() const { return _column_names.size(); }
 
 uint64_t Table::row_count() const {
   uint64_t count = 0;
-  for(ChunkID i{0}; i < chunk_count(); ++i) {
+  for (ChunkID i{0}; i < chunk_count(); ++i) {
     count += _chunks[i].size();
   }
   return count;
@@ -108,7 +108,7 @@ void Table::compress_chunk(ChunkID chunk_id) {
 }
 
 void Table::emplace_chunk(Chunk chunk) {
-  if(chunk_count() == 1 && _chunks.back().size() == 0) {
+  if (chunk_count() == 1 && _chunks.back().size() == 0) {
     _chunks[0] = std::move(chunk);
   } else {
     _chunks.emplace_back(std::move(chunk));

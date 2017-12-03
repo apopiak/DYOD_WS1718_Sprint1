@@ -1,8 +1,8 @@
 #include <algorithm>
+#include <experimental/optional>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <experimental/optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -276,7 +276,8 @@ TEST_F(OperatorsTableScanTest, ScanOnWideDictionaryColumn) {
 }
 
 TEST_F(OperatorsTableScanTest, ScanWithMismatchedTypes) {
-  auto mismatch_scan = std::make_shared<opossum::TableScan>(_table_wrapper_even_dict, ColumnID{1}, ScanType::OpEquals, AllTypeVariant("not int"));
+  auto mismatch_scan = std::make_shared<opossum::TableScan>(_table_wrapper_even_dict, ColumnID{1}, ScanType::OpEquals,
+                                                            AllTypeVariant("not int"));
 
   EXPECT_THROW(mismatch_scan->execute(), std::exception);
 }

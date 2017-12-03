@@ -28,20 +28,12 @@ class ReferenceColumn : public BaseColumn {
 
   void append(const AllTypeVariant&) override { throw std::logic_error("ReferenceColumn is immutable"); };
 
-  size_t size() const override {
-    return _pos_list->size();
-  }
+  size_t size() const override { return _pos_list->size(); }
 
-  const std::shared_ptr<const PosList> pos_list() const {
-    return _pos_list;
-  }
-  const std::shared_ptr<const Table> referenced_table() const {
-    return _referenced_table;
-  }
+  const std::shared_ptr<const PosList> pos_list() const { return _pos_list; }
+  const std::shared_ptr<const Table> referenced_table() const { return _referenced_table; }
 
-  ColumnID referenced_column_id() const {
-    return _referenced_column_id;
-  }
+  ColumnID referenced_column_id() const { return _referenced_column_id; }
 
  protected:
   std::shared_ptr<const Table> _referenced_table;
